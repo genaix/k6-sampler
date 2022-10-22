@@ -1,6 +1,6 @@
-import http from 'k6/http';
-import { sleep, group, check } from 'k6';
-import { parseHTML } from 'k6/html';
+import http from "k6/http";
+import { group, check } from "k6";
+import { parseHTML } from "k6/html";
 import { SharedArray } from "k6/data";
 
 /* cookies
@@ -8,12 +8,16 @@ import { SharedArray } from "k6/data";
     console.log("Cookies::"+JSON.stringify(cookies));
 */
 
-// docker run --rm -it -v /home/evgeniy/github/k6_otus_example/:/home/k6 -u root grafana/k6 run -v loadtest.ts
-
 export const options = {
-  iterations: 1,
-  vus: 1,
-  duration: "30s",
+  discardResponseBodies: false,
+  scenarios: {
+    webtours: {
+      executor: "shared-iterations",
+      vus: 1,
+      iterations: 1,
+      maxDuration: "30s",
+    },
+  },
 }
 
 const host = "www.load-test.ru:1080"
@@ -57,7 +61,6 @@ export function openLogin() {
               'Accept-Encoding': 'gzip, deflate',
               'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
               Connection: 'keep-alive',
-      //         Cookie: 'MSO=SID&1665153461',
               Host: `${host}`,
               'Upgrade-Insecure-Requests': '1',
               'User-Agent':
@@ -91,7 +94,6 @@ export function openLogin() {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie: 'MSO=SID&1665153481',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/welcome.pl?signOff=true`,
         'Upgrade-Insecure-Requests': '1',
@@ -101,8 +103,6 @@ export function openLogin() {
     })
     check(response, {"status is 200": (r) => r.status === 200});
     userSession = parseHTML(response.body).find('input[name=\"userSession\"]').attr("value")
-    let cookies = http.cookieJar().cookiesForURL(response.url);
-    console.log("Cookies::"+JSON.stringify(cookies));
 
     response = http.get(`${url}/WebTours/home.html`)
     check(response, {"status is 200": (r) => r.status === 200});
@@ -156,8 +156,6 @@ export function doLogin(user, userSession) {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie:
-//           'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/login.pl`,
         'Upgrade-Insecure-Requests': '1',
@@ -176,8 +174,6 @@ export function doLogin(user, userSession) {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie:
-//           'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/login.pl`,
         'Upgrade-Insecure-Requests': '1',
@@ -193,8 +189,6 @@ export function doLogin(user, userSession) {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie:
-//           'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/nav.pl?page=menu&in=home`,
         'User-Agent':
@@ -209,8 +203,6 @@ export function doLogin(user, userSession) {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie:
-//           'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/nav.pl?page=menu&in=home`,
         'User-Agent':
@@ -225,8 +217,6 @@ export function doLogin(user, userSession) {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie:
-//           'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/nav.pl?page=menu&in=home`,
         'User-Agent':
@@ -251,8 +241,6 @@ export function openFlights() {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie:
-//           'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/nav.pl?page=menu&in=home`,
         'User-Agent':
@@ -268,8 +256,6 @@ export function openFlights() {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie:
-//           'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/nav.pl?page=menu&in=home`,
         'Upgrade-Insecure-Requests': '1',
@@ -286,8 +272,6 @@ export function openFlights() {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie:
-//           'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/welcome.pl?page=search`,
         'Upgrade-Insecure-Requests': '1',
@@ -304,8 +288,6 @@ export function openFlights() {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie:
-//           'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/welcome.pl?page=search`,
         'Upgrade-Insecure-Requests': '1',
@@ -327,8 +309,6 @@ export function openFlights() {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie:
-//           'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/nav.pl?page=menu&in=flights`,
         'User-Agent':
@@ -352,8 +332,6 @@ export function openFlights() {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie:
-//           'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/nav.pl?page=menu&in=flights`,
         'User-Agent':
@@ -377,8 +355,6 @@ export function openFlights() {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie:
-//           'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/reservations.pl?page=welcome`,
         'User-Agent':
@@ -426,8 +402,6 @@ export function findFlight(departures, arrivals) {
           'Cache-Control': 'max-age=0',
           Connection: 'keep-alive',
           'Content-Type': 'application/x-www-form-urlencoded',
-//           Cookie:
-//             'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
           Host: `${host}`,
           Origin: `${url}`,
           Referer: `${url}/cgi-bin/reservations.pl?page=welcome`,
@@ -481,8 +455,6 @@ export function chooseAirplane(airplane) {
           'Cache-Control': 'max-age=0',
           Connection: 'keep-alive',
           'Content-Type': 'application/x-www-form-urlencoded',
-//           Cookie:
-//             'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
           Host: `${host}`,
           Origin: `${url}`,
           Referer: `${url}/cgi-bin/reservations.pl`,
@@ -542,8 +514,6 @@ export function paymentDetails(user, airplane) {
           'Cache-Control': 'max-age=0',
           Connection: 'keep-alive',
           'Content-Type': 'application/x-www-form-urlencoded',
-//           Cookie:
-//             'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&address2&&username&zemskiy1&hash&17&lastName&zemskiy1%0A&address1&&creditCard&&expDate&%0A',
           Host: `${host}`,
           Origin: `${url}`,
           Referer: `${url}/cgi-bin/reservations.pl`,
@@ -563,8 +533,6 @@ export function paymentDetails(user, airplane) {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
-//         Cookie:
-//           'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&username&zemskiy1&address2&&hash&17&address1&&lastName&zemskiy1%0A',
         Host: `${host}`,
         Referer: `${url}/cgi-bin/reservations.pl`,
         'User-Agent':
@@ -595,8 +563,6 @@ export function backToRoot() {
           'Cache-Control': 'max-age=0',
           Connection: 'keep-alive',
           'Content-Type': 'application/x-www-form-urlencoded',
-//           Cookie:
-//             'MSO=SID&1665153481; MTUserInfo=firstName&zemskiy1&username&zemskiy1&address2&&hash&17&address1&&lastName&zemskiy1%0A',
           Host: `${host}`,
           Origin: `${url}`,
           Referer: `${url}/cgi-bin/reservations.pl`,
