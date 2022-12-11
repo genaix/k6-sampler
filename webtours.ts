@@ -37,7 +37,7 @@ const data = new SharedArray("get users creds", function () {
 
 export default function() {
   let random = Math.floor(Math.random() * data.length)
-  let user = data[0]
+  let user = data[random]
   let userSession = openLogin()
   doLogin(user, userSession);
   let destination_data = openFlights()
@@ -137,7 +137,6 @@ export function doLogin(user, userSession) {
           'Cache-Control': 'max-age=0',
           Connection: 'keep-alive',
           'Content-Type': 'application/x-www-form-urlencoded',
-//               Cookie: 'MSO=SID&1665153481',
           Host: `${host}`,
           Origin: `${url}`,
           Referer: `${url}/cgi-bin/nav.pl?in=home`,
@@ -164,8 +163,6 @@ export function doLogin(user, userSession) {
       },
     })
     check(response, {"status is 200": (r) => r.status === 200});
-    let cookies = http.cookieJar().cookiesForURL(response.url);
-    console.log("Cookies::"+JSON.stringify(cookies));
 
     response = http.get(`${url}/cgi-bin/login.pl?intro=true`, {
       headers: {
@@ -257,7 +254,7 @@ export function openFlights() {
         'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
         Connection: 'keep-alive',
         Host: `${host}`,
-        Referer: `${url}/cgi-bin/nav.pl?page=menu&in=home`,
+        Referer: `${url}/cgi-bin/nav.pl?page=menu&in=itinerary`,
         'Upgrade-Insecure-Requests': '1',
         'User-Agent':
           'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36',
@@ -392,7 +389,7 @@ export function findFlight(departures, arrivals) {
     }
     response = http.post(
       `${url}/cgi-bin/reservations.pl`,
-      JSON.stringify(payload),
+      payload,
       {
         headers: {
           Accept:
@@ -415,7 +412,6 @@ export function findFlight(departures, arrivals) {
     parseHTML(response.body).find('input[name="outboundFlight"]').toArray().forEach( (element) => {
       airplanes.push(element.attr("value"));
     });
-
     response = http.get(`${url}/WebTours/images/button_next.gif`, {
       headers: {
         Referer: `${url}/cgi-bin/reservations.pl`,
@@ -434,18 +430,18 @@ export function findFlight(departures, arrivals) {
 export function chooseAirplane(airplane) {
   group('chooseAirplane', function () {
     let response;
-
+    let payload = {
+      "outboundFlight": `${airplane}`,
+      "numPassengers": "1",
+      "advanceDiscount": "0",
+      "seatType": "Coach",
+      "seatPref": "None",
+      "reserveFlights.x": "64",
+      "reserveFlights.y": "11",
+    }
     response = http.post(
       `${url}/cgi-bin/reservations.pl`,
-      {
-        outboundFlight: `${airplane}`,
-        numPassengers: '1',
-        advanceDiscount: '0',
-        seatType: 'Coach',
-        seatPref: 'None',
-        'reserveFlights.x': '64',
-        'reserveFlights.y': '11',
-      },
+      payload,
       {
         headers: {
           Accept:
@@ -465,7 +461,6 @@ export function chooseAirplane(airplane) {
       }
     )
     check(response, {"status is 200": (r) => r.status === 200});
-
     response = http.get(`${url}/WebTours/images/button_next.gif`, {
       headers: {
         Referer: `${url}/cgi-bin/reservations.pl`,
@@ -481,30 +476,29 @@ export function chooseAirplane(airplane) {
 
 export function paymentDetails(user, airplane) {
   group('paymentDetails', function () {
-    let response;
-
-    response = http.post(
+    let payload = {
+      firstName: `${user.login}`,
+      lastName: `${user.login}`,
+      address1: '',
+      address2: '',
+      pass1: `${user.login} ${user.login}`,
+      creditCard: '',
+      expDate: '',
+      oldCCOption: '',
+      numPassengers: '1',
+      seatType: 'Coach',
+      seatPref: 'None',
+      outboundFlight: `${airplane}`,
+      advanceDiscount: '0',
+      returnFlight: '',
+      JSFormSubmit: 'off',
+      'buyFlights.x': '42',
+      'buyFlights.y': '10',
+      '.cgifields': 'saveCC',
+    }
+    let response = http.post(
       `${url}/cgi-bin/reservations.pl`,
-      JSON.stringify({
-        firstName: `${user.login}`,
-        lastName: `${user.login}`,
-        address1: '',
-        address2: '',
-        pass1: `${user.login} ${user.login}`,
-        creditCard: '',
-        expDate: '',
-        oldCCOption: '',
-        numPassengers: '1',
-        seatType: 'Coach',
-        seatPref: 'None',
-        outboundFlight: `${airplane}`,
-        advanceDiscount: '0',
-        returnFlight: '',
-        JSFormSubmit: 'off',
-        'buyFlights.x': '42',
-        'buyFlights.y': '10',
-        '.cgifields': 'saveCC',
-      }),
+      payload,
       {
         headers: {
           Accept:
@@ -524,8 +518,6 @@ export function paymentDetails(user, airplane) {
       }
     )
     check(response, {"status is 200": (r) => r.status === 200});
-    let cookies = http.cookieJar().cookiesForURL(response.url);
-    console.log("Cookies::"+JSON.stringify(cookies));
 
     response = http.get(`${url}/WebTours/images/bookanother.gif`, {
       headers: {
